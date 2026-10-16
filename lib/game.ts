@@ -120,11 +120,10 @@ interface Bot {
   cd: number; seen: boolean; losT: number; meshes: B.Mesh[]; anims: Anims | null; flash: B.Mesh | null; fl: number;
 }
 
-export type Kind = "soldier" | "xbot" | "michelle" | "cesium";
+export type Kind = "soldier" | "xbot" | "cesium";
 export const CHARACTERS: { id: Kind; name: string; blurb: string }[] = [
   { id: "xbot", name: "Operator", blurb: "Plain body, shows the gear you pick up" },
   { id: "soldier", name: "Soldier", blurb: "Realistic armoured soldier" },
-  { id: "michelle", name: "Scout", blurb: "Female survivor" },
   { id: "cesium", name: "Civilian", blurb: "Man in a white suit" },
 ];
 
@@ -571,7 +570,7 @@ export function startGame(canvas: HTMLCanvasElement, mini: HTMLCanvasElement, on
   // ---------- bots ----------
   const bots: Bot[] = [];
   let gunAsset: B.AssetContainer | null = null;
-  const CHAR_FILES: Record<Kind, string> = { xbot: "Xbot.glb", soldier: "Soldier.glb", michelle: "Michelle.glb", cesium: "CesiumMan.glb" };
+  const CHAR_FILES: Record<Kind, string> = { xbot: "Xbot.glb", soldier: "Soldier.glb", cesium: "CesiumMan.glb" };
   const models: Partial<Record<Kind, B.AssetContainer>> = {}, faceOf: Partial<Record<Kind, number>> = {};
   const hasOwnGear = (k: Kind) => k === "soldier"; // the soldier model already wears a helmet, vest and pack
   const boneBase = (n: B.Node, tag: string) => n.name.slice(0, -(tag.length + 1)).replace(/^.*mixamorig:?/, "");
@@ -613,15 +612,6 @@ export function startGame(canvas: HTMLCanvasElement, mini: HTMLCanvasElement, on
     } catch { /* keep the default */ }
     faceOf[kind] = face; return face;
   }
-  function retarget(src: B.AnimationGroup[], tag: string) { // play the Soldier's clips on another Mixamo-rigged body (rotations only)
-    const nodes = new Map<string, B.TransformNode>();
-    for (const n of scene.transformNodes) if (n.name.endsWith("_" + tag)) nodes.set(n.name.slice(0, -(tag.length + 1)), n);
-    return src.map((g) => {
-      const c = g.clone(g.name + "_" + tag, (t: B.Node) => (t && nodes.get(t.name)) || null);
-      for (const ta of [...c.targetedAnimations]) if (!ta.target || ta.animation.targetProperty === "position" || ta.animation.targetProperty === "scaling") c.removeTargetedAnimation(ta.animation);
-      return c;
-    });
-  }
   function spawnModel(root: B.TransformNode, tag: string, tint: string, kind: Kind, height = 1.8, gearColor = tint) {
     const inst = models[kind]!.instantiateModelsToScene((n) => n + "_" + tag, true);
     const holder = fit(inst.rootNodes[0] as B.TransformNode, height);
@@ -631,9 +621,7 @@ export function startGame(canvas: HTMLCanvasElement, mini: HTMLCanvasElement, on
       m.isPickable = false; sg.addShadowCaster(m);
       const mt = m.material as B.PBRMaterial | null; if (mt && "albedoColor" in mt) mt.albedoColor = col; // outfit colour
     });
-    let groups = inst.animationGroups;
-    if (kind === "michelle" && models.soldier) { groups.forEach((g) => g.stop()); groups = retarget(models.soldier.animationGroups, tag); } // she only ships a dance clip
-    const anims = pickAnims(groups); setAnim(anims, "idle");
+    const anims = pickAnims(inst.animationGroups); setAnim(anims, "idle");
     return { anims, gear: makeGear(root, gearColor), holder };
   }
   function makeBot(i: number) {
@@ -644,9 +632,9 @@ export function startGame(canvas: HTMLCanvasElement, mini: HTMLCanvasElement, on
     const hit = (m: B.Mesh, y: number, name: string) => { m.parent = root; m.position.y = y; m.name = name; m.visibility = 0; m.metadata = { enemy: bot }; bot.meshes.push(m); };
     hit(B.MeshBuilder.CreateBox("body", { width: 0.6, height: 1.35, depth: 0.5 }, scene), 0.75, "body");
     hit(B.MeshBuilder.CreateSphere("head", { diameter: 0.32 }, scene), 1.68, "head");
-    const pool = (["soldier", "michelle", "xbot", "soldier", "cesium", "soldier", "xbot", "michelle"] as Kind[]).filter((k) => models[k]);
+    const pool = (["soldier", "xbot", "cesium", "soldier", "soldier", "xbot"] as Kind[]).filter((k) => models[k]);
     if (pool.length) {
-      const kind = pool[i % pool.length], height = kind === "michelle" ? rnd(1.64, 1.76) : rnd(1.72, 1.92); // every bot is a different size
+      const kind = pool[i % pool.length], height = rnd(1.72, 1.92); // every bot is a different size
       const m = spawnModel(root, "b" + i, kind === "soldier" ? CAMO[i % CAMO.length] : TINTS[i % TINTS.length], kind, height, TINTS[(i + 2) % TINTS.length]); bot.anims = m.anims;
       if (!hasOwnGear(kind)) { m.gear.helmet.setEnabled(i % 3 !== 1); m.gear.vest.setEnabled(i % 2 === 0); m.gear.pack.setEnabled(i % 3 !== 2); } // each bot wears a different kit
     }
@@ -742,7 +730,7 @@ export function startGame(canvas: HTMLCanvasElement, mini: HTMLCanvasElement, on
     const kind = (opts.character && models[opts.character] ? opts.character : (Object.keys(models)[0] as Kind | undefined));
     if (!kind) return;
     pKind = kind; pRoot = new B.TransformNode("player", scene); pRoot.setEnabled(false);
-    { const m = spawnModel(pRoot, "me", kind === "xbot" ? "#7f9560" : "#ffffff", kind, kind === "michelle" ? 1.7 : 1.8, "#5d6b43"); pAnims = m.anims; pGear = m.gear; rig = buildRig("me", pRoot, m.holder); }
+    { const m = spawnModel(pRoot, "me", kind === "xbot" ? "#7f9560" : "#ffffff", kind, 1.8, "#5d6b43"); pAnims = m.anims; pGear = m.gear; rig = buildRig("me", pRoot, m.holder); }
     pGun = new B.TransformNode("pgun", scene); pGun.parent = pRoot; pGun.position.set(0.2, 1.28, 0.25);
     buildVM();
   }
@@ -1180,11 +1168,10 @@ export function startGame(canvas: HTMLCanvasElement, mini: HTMLCanvasElement, on
   });
 
   (async () => {
-    const want = opts.character ?? "xbot", order = [want, "xbot", "soldier", "michelle", "cesium"].filter((k, n, a) => a.indexOf(k) === n) as Kind[];
+    const want = opts.character ?? "xbot", order = [want, "xbot", "soldier", "cesium"].filter((k, n, a) => a.indexOf(k) === n) as Kind[];
     for (const k of order) { // the chosen body first, then the rest for the bots
       try { models[k] = await B.SceneLoader.LoadAssetContainerAsync("/assets/", CHAR_FILES[k], scene); } catch (e) { console.warn(CHAR_FILES[k] + " failed", e); }
     }
-    if (models.michelle && !models.soldier) delete models.michelle; // her clips are borrowed from the Soldier
     try { gunAsset = await B.SceneLoader.LoadAssetContainerAsync("/assets/guns/", "lightning.glb", scene); } catch (e) { console.warn("gun model failed", e); }
     try {
       const pcont = await B.SceneLoader.LoadAssetContainerAsync("/assets/", "aerobatic_plane.glb", scene);

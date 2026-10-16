@@ -53,7 +53,7 @@ Click the game to capture the mouse. Press `Esc` to pause.
 - **Loot:** ammo, bandages, med kits, energy drinks, grenades, helmet, body armor, backpack (raises the carry limit from 4 to 10)
 - **Inventory panel** and quick-use bar showing everything you carry
 - **Plane drop, skydive and parachute** with procedural body poses; procedural **crouch and jump** poses blended over the walk/run animations
-- **4 playable characters** (pick one on the start screen) and a mix of body types, camo and heights for the bots
+- **3 playable characters** (pick one on the start screen: Operator, Soldier, Civilian) and a mix of body types, camo colours and heights for the bots
 - **Drivable cars**, lakes, houses, forests, rocks, tents, grass and flowers
 - **Lighting:** golden-hour sun, cascaded shadows, ambient occlusion, bloom, film grain, vignette, terrain that blends grass / dirt / rock
 - First- and third-person cameras, compass, minimap, kill feed, damage-direction indicator
@@ -73,10 +73,10 @@ All third-party assets live in `public/assets/`.
 | Grass001, Ground037, Rock035 textures | [ambientCG](https://ambientcg.com) | CC0 |
 | Sky HDRI (`kloofendal_48d_partly_cloudy_puresky`) | [Poly Haven](https://polyhaven.com) | CC0 |
 | "Lightning" pump-action shotgun model | [OpenGameArt](https://opengameart.org) | CC0 |
-| Soldier, Xbot, Michelle character models | [Mixamo](https://www.mixamo.com), as shipped in the [three.js examples](https://github.com/mrdoob/three.js/tree/dev/examples/models/gltf) | Mixamo terms (see note) |
+| Soldier and Xbot character models | [Mixamo](https://www.mixamo.com), as shipped in the [three.js examples](https://github.com/mrdoob/three.js/tree/dev/examples/models/gltf) | Mixamo terms (see note) |
 | CesiumMan character | [Cesium](https://github.com/KhronosGroup/glTF-Sample-Assets) | CC-BY 4.0 |
 | Aerobatic plane, wood texture | [Babylon.js sample assets](https://assets.babylonjs.com) | Babylon.js samples |
 
-**Note on the Mixamo characters:** Mixamo lets you use its characters and animations in your own projects, but not redistribute them as standalone assets. Check Adobe's current terms before making this repository public or shipping the game, and swap those models out if needed. The Michelle character borrows the Soldier's walk and run animations (same skeleton).
+**Note on the Mixamo characters:** Mixamo lets you use its characters and animations in your own projects, but not redistribute them as standalone assets. Check Adobe's current terms before making this repository public or shipping the game, and swap those models out if needed.
 
 Gun models other than the shotgun are built in code from simple shapes.
