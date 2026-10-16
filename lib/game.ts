@@ -102,7 +102,7 @@ function pickAnims(gs: B.AnimationGroup[]): Anims {
   const f = (k: string) => gs.find((g) => g.name.toLowerCase().startsWith(k)) ?? null;
   gs.forEach((g) => g.stop());
   const a: Anims = { idle: f("idle"), walk: f("walk"), run: f("run"), cur: null };
-  if (!a.walk && !a.idle) a.walk = gs[0] ?? null; // single-clip models (CesiumMan): freeze it when standing
+  if (!a.walk && !a.idle) a.walk = gs[0] ?? null; // single-clip models: freeze it when standing
   return a;
 }
 function setAnim(a: Anims | null, want: "idle" | "walk" | "run", ratio = 1) {
@@ -120,11 +120,10 @@ interface Bot {
   cd: number; seen: boolean; losT: number; meshes: B.Mesh[]; anims: Anims | null; flash: B.Mesh | null; fl: number;
 }
 
-export type Kind = "soldier" | "xbot" | "cesium";
+export type Kind = "soldier" | "xbot";
 export const CHARACTERS: { id: Kind; name: string; blurb: string }[] = [
   { id: "xbot", name: "Operator", blurb: "Plain body, shows the gear you pick up" },
   { id: "soldier", name: "Soldier", blurb: "Realistic armoured soldier" },
-  { id: "cesium", name: "Civilian", blurb: "Man in a white suit" },
 ];
 
 export function startGame(canvas: HTMLCanvasElement, mini: HTMLCanvasElement, onHud: (h: Hud) => void, opts: { character?: Kind } = {}) {
@@ -570,7 +569,7 @@ export function startGame(canvas: HTMLCanvasElement, mini: HTMLCanvasElement, on
   // ---------- bots ----------
   const bots: Bot[] = [];
   let gunAsset: B.AssetContainer | null = null;
-  const CHAR_FILES: Record<Kind, string> = { xbot: "Xbot.glb", soldier: "Soldier.glb", cesium: "CesiumMan.glb" };
+  const CHAR_FILES: Record<Kind, string> = { xbot: "Xbot.glb", soldier: "Soldier.glb" };
   const models: Partial<Record<Kind, B.AssetContainer>> = {}, faceOf: Partial<Record<Kind, number>> = {};
   const hasOwnGear = (k: Kind) => k === "soldier"; // the soldier model already wears a helmet, vest and pack
   const boneBase = (n: B.Node, tag: string) => n.name.slice(0, -(tag.length + 1)).replace(/^.*mixamorig:?/, "");
@@ -602,7 +601,7 @@ export function startGame(canvas: HTMLCanvasElement, mini: HTMLCanvasElement, on
   const TINTS = ["#9aa66f", "#b59f6a", "#7d8da0", "#a86b6b", "#8a8a8a", "#6f9a8a"];
   const CAMO = ["#e0d3ad", "#b5c18f", "#a9aeb0", "#d6d6d6", "#9a9c86", "#c9b48a"]; // multiplied over the soldier's own colours
   function detectFace(kind: Kind, holder: B.TransformNode, root: B.TransformNode, tag: string) { // which way do the toes point? (measured, not guessed)
-    let face = Math.PI; // non-Mixamo models (CesiumMan) need the flip
+    let face = Math.PI; // non-Mixamo models would need the flip
     try {
       holder.rotation.y = 0; root.computeWorldMatrix(true); holder.computeWorldMatrix(true);
       holder.getChildTransformNodes(false).forEach((n) => n.computeWorldMatrix(true));
@@ -632,7 +631,7 @@ export function startGame(canvas: HTMLCanvasElement, mini: HTMLCanvasElement, on
     const hit = (m: B.Mesh, y: number, name: string) => { m.parent = root; m.position.y = y; m.name = name; m.visibility = 0; m.metadata = { enemy: bot }; bot.meshes.push(m); };
     hit(B.MeshBuilder.CreateBox("body", { width: 0.6, height: 1.35, depth: 0.5 }, scene), 0.75, "body");
     hit(B.MeshBuilder.CreateSphere("head", { diameter: 0.32 }, scene), 1.68, "head");
-    const pool = (["soldier", "xbot", "cesium", "soldier", "soldier", "xbot"] as Kind[]).filter((k) => models[k]);
+    const pool = (["soldier", "xbot", "soldier", "xbot", "soldier", "soldier"] as Kind[]).filter((k) => models[k]);
     if (pool.length) {
       const kind = pool[i % pool.length], height = rnd(1.72, 1.92); // every bot is a different size
       const m = spawnModel(root, "b" + i, kind === "soldier" ? CAMO[i % CAMO.length] : TINTS[i % TINTS.length], kind, height, TINTS[(i + 2) % TINTS.length]); bot.anims = m.anims;
@@ -671,7 +670,7 @@ export function startGame(canvas: HTMLCanvasElement, mini: HTMLCanvasElement, on
       const base = n.name.slice(0, -(tag.length + 1)).replace(/^.*mixamorig:?/, "");
       if (BONE_NAMES.includes(base)) bones[base] = n;
     }
-    if (Object.keys(bones).length < BONE_NAMES.length) return null; // not a Mixamo-style skeleton (e.g. CesiumMan)
+    if (Object.keys(bones).length < BONE_NAMES.length) return null; // not a Mixamo-style skeleton
     for (const b of Object.values(bones)) if (!b.rotationQuaternion) b.rotationQuaternion = B.Quaternion.FromEulerVector(b.rotation);
     return { bones, cal: null, base: new Map(), frame, holder };
   }
@@ -1168,7 +1167,7 @@ export function startGame(canvas: HTMLCanvasElement, mini: HTMLCanvasElement, on
   });
 
   (async () => {
-    const want = opts.character ?? "xbot", order = [want, "xbot", "soldier", "cesium"].filter((k, n, a) => a.indexOf(k) === n) as Kind[];
+    const want = opts.character ?? "xbot", order = [want, "xbot", "soldier"].filter((k, n, a) => a.indexOf(k) === n) as Kind[];
     for (const k of order) { // the chosen body first, then the rest for the bots
       try { models[k] = await B.SceneLoader.LoadAssetContainerAsync("/assets/", CHAR_FILES[k], scene); } catch (e) { console.warn(CHAR_FILES[k] + " failed", e); }
     }

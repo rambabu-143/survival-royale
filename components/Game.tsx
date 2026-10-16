@@ -172,7 +172,7 @@ export default function Game() {
               <b>H bandage · J med kit · K energy drink · G grenade</b> · 1–5 weapon groups (press again to cycle) · wheel / Q switch · X fists<br />
               V first / third person · Tab inventory · <b>/ shows every shortcut</b><br />
               In the plane: Space to jump out · in freefall: Space opens the parachute · E drives cars<br />
-              <small style={{ opacity: 0.6 }}>Assets: Kenney Nature Kit &amp; sounds (CC0) · ambientCG Grass001/Ground037/Rock035 (CC0) · Poly Haven sky (CC0) · OpenGameArt "Lightning" pump-action (CC0) · Xbot &amp; Soldier models: Mixamo via three.js examples · Babylon.js sample plane · CesiumMan © Cesium (CC-BY 4.0)</small>
+              <small style={{ opacity: 0.6 }}>Assets: Kenney Nature Kit &amp; sounds (CC0) · ambientCG Grass001/Ground037/Rock035 (CC0) · Poly Haven sky (CC0) · OpenGameArt "Lightning" pump-action (CC0) · Xbot &amp; Soldier models: Mixamo via three.js examples · Babylon.js sample plane</small>
             </div>
           </div>
         )}
